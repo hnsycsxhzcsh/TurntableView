@@ -14,7 +14,6 @@ import android.os.Build;
 import android.support.annotation.Nullable;
 import android.support.annotation.RequiresApi;
 import android.support.v4.view.GestureDetectorCompat;
-import android.support.v4.view.ViewCompat;
 import android.util.AttributeSet;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
@@ -238,10 +237,21 @@ public class TurntableView extends View {
         animator.start();
     }
 
+    @Override
+    public boolean onTouchEvent(MotionEvent event) {
+        boolean consume = mDetector.onTouchEvent(event);
+        if (consume) {
+//            getParent().getParent().requestDisallowInterceptTouchEvent(true);
+            return true;
+        } else {
+            return super.onTouchEvent(event);
+        }
+    }
+
     private class TurntableGestureListener extends GestureDetector.SimpleOnGestureListener {
         @Override
         public boolean onDown(MotionEvent e) {
-            return super.onDown(e);
+            return true;
         }
 
         @Override
@@ -251,12 +261,14 @@ public class TurntableView extends View {
 
         @Override
         public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX, float distanceY) {
-            return super.onScroll(e1, e2, distanceX, distanceY);
+            System.out.println("distanceX:" + distanceX + ",distanceY:" + distanceY);
+            return true;
         }
 
         @Override
         public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
-            return super.onFling(e1, e2, velocityX, velocityY);
+            System.out.println("velocityX:" + velocityX + ",velocityY:" + velocityY);
+            return true;
         }
     }
 
