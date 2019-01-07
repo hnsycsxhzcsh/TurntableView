@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <declare-styleable name="TurntableView">
+        <attr name="pannum" format="integer" />
+        <attr name="names" format="reference" />
+        <attr name="icons" format="reference" />
+        <attr name="percentage" format="float" />
+    </declare-styleable>
+
+</resources>
