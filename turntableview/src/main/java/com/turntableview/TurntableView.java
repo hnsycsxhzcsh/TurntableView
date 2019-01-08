@@ -192,6 +192,11 @@ public class TurntableView extends View {
 //        postInvalidate();
     }
 
+    /**
+     * 滚动到指定位置
+     *
+     * @param position
+     */
     public void startRotate(int position) {
         if (position >= 0 && position < mPanNum) {
             //指定位置
@@ -203,12 +208,22 @@ public class TurntableView extends View {
         }
     }
 
+    /**
+     * 指定到随机位置
+     */
     public void startRotate() {
         //随机
         int random = getRandom(0, mPanNum);
         setScrollToPosition(random);
     }
 
+    /**
+     * 获取min 到 max之间的随机值
+     *
+     * @param min
+     * @param max
+     * @return
+     */
     public int getRandom(int min, int max) {
         Random random = new Random();
         int s = random.nextInt(max) % (max - min + 1) + min;
@@ -261,7 +276,18 @@ public class TurntableView extends View {
 
         @Override
         public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX, float distanceY) {
+            float e1X = e1.getX();
+            float e1Y = e1.getY();
+            float e2X = e2.getX();
+            float e2Y = e2.getY();
+
+            System.out.println("e1X:" + e1X + ",e1Y:" + e1Y + ",e2X" + e2X + ",e2Y" + e2Y);
             System.out.println("distanceX:" + distanceX + ",distanceY:" + distanceY);
+            float scrollTheta = vectorToScalarScroll(distanceX, distanceY, e2.getX() - mCenterX, e2.getY() -
+                    mCenterY);
+            calculationChangeAngle(e2, distanceX, distanceY);
+            int rotate = mCurrentAngle - (int) scrollTheta / 4;
+
             return true;
         }
 
@@ -270,6 +296,36 @@ public class TurntableView extends View {
             System.out.println("velocityX:" + velocityX + ",velocityY:" + velocityY);
             return true;
         }
+    }
+
+    private void calculationChangeAngle(MotionEvent e2, float distanceX, float distanceY) {
+//        Math.sin(Math.toRadians(radian))
+
+        float e2X = e2.getX();
+        float e2Y = e2.getY();
+        //计算移动点到圆心的距离
+        float xMove = e2X - mCenterX;
+        float yMove = mCenterY - e2Y;
+        double distanceMove = Math.sqrt(xMove * xMove + yMove * yMove);
+        double distanceMoveDz = Math.sqrt(distanceX * distanceX + distanceY * distanceY);
+        double acos = (distanceMove * distanceMove + distanceMove * distanceMove - distanceMoveDz * distanceMoveDz) / (2 * distanceMove * distanceMove);
+        double changeAngleDz = Math.toDegrees(acos);
+
+        System.out.println("distanceMove:" + distanceMove + ",distanceMoveDz" + distanceMoveDz + ",acos" + acos + ",changeAngleDz:" + changeAngleDz);
+    }
+
+    //TODO 判断滑动的方向
+    private float vectorToScalarScroll(float dx, float dy, float x, float y) {
+
+        float l = (float) Math.sqrt(dx * dx + dy * dy);
+
+        float crossX = -y;
+        float crossY = x;
+
+        float dot = (crossX * dx + crossY * dy);
+        float sign = Math.signum(dot);
+
+        return l * sign;
     }
 
 }
