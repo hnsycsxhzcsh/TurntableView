@@ -240,12 +240,14 @@ public class TurntableView extends View {
     @Override
     public boolean onTouchEvent(MotionEvent event) {
         boolean consume = mDetector.onTouchEvent(event);
-        if (consume) {
-//            getParent().getParent().requestDisallowInterceptTouchEvent(true);
-            return true;
-        } else {
-            return super.onTouchEvent(event);
-        }
+//        if (consume) {
+////            getParent().getParent().requestDisallowInterceptTouchEvent(true);
+//            return true;
+//        } else {
+//            return super.onTouchEvent(event);
+//        }
+
+        return consume;
     }
 
     private class TurntableGestureListener extends GestureDetector.SimpleOnGestureListener {
@@ -255,20 +257,28 @@ public class TurntableView extends View {
         }
 
         @Override
-        public boolean onDoubleTap(MotionEvent e) {
-            return super.onDoubleTap(e);
-        }
-
-        @Override
         public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX, float distanceY) {
-            System.out.println("distanceX:" + distanceX + ",distanceY:" + distanceY);
+            System.out.println("distanceX:" + distanceX + ",distanceX" + distanceY);
+
+            float distance = (float) Math.sqrt(distanceX * distanceX + distanceY * distanceY);
+
             return true;
         }
 
         @Override
         public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
-            System.out.println("velocityX:" + velocityX + ",velocityY:" + velocityY);
+            System.out.println("velocityX:" + velocityX + ",velocityY" + velocityY);
             return true;
+        }
+    }
+
+    private int getOrientation(float dx, float dy) {
+        if (Math.abs(dx) > Math.abs(dy)) {
+            //X轴移动
+            return dx > 0 ? 'r' : 'l';
+        } else {
+            //Y轴移动
+            return dy > 0 ? 'b' : 't';
         }
     }
 
