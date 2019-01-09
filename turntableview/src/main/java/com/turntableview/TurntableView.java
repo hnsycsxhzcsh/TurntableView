@@ -111,7 +111,6 @@ public class TurntableView extends View {
         mRadius = mWid / 2;
 
         mOffsetAngle = (float) 360 / (float) mPanNum;
-
     }
 
     @Override
