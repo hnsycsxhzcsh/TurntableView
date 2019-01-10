@@ -47,8 +47,11 @@ public class TurntableView extends View {
     private float mPercentage;
     private List<Bitmap> mBitmaps = new ArrayList<>();
     private GestureDetectorCompat mDetector;
-    private int mCurrentAngle = 0;
+    private float mCurrentAngle = 0;
     private long mDuration = 2000;
+    private float mStartX;
+    private float mStartY;
+    private ValueAnimator mOnFlingAnimator;
 
     public TurntableView(Context context) {
         this(context, null);
@@ -171,7 +174,7 @@ public class TurntableView extends View {
 
         RectF rectF = new RectF(0, 0, mWid, mHei);
 
-        int angle = mCurrentAngle;
+        float angle = mCurrentAngle;
         for (int i = 0; i < mPanNum; i++) {
             if (i % 2 == 0) {
                 mPaint.setColor(mColorRed);
@@ -180,11 +183,11 @@ public class TurntableView extends View {
                 mPaint.setColor(mColorGreen);
                 canvas.drawArc(rectF, angle, mOffsetAngle, true, mPaint);
             }
-            angle = (int) (angle + mOffsetAngle);
+            angle = angle + mOffsetAngle;
         }
     }
 
-    private void setRotate(int rotation) {
+    private void setRotate(float rotation) {
         mCurrentAngle = (rotation % 360 + 360) % 360;
 //        ViewCompat.postInvalidateOnAnimation(this);
         invalidate();
@@ -244,7 +247,7 @@ public class TurntableView extends View {
             public void onAnimationUpdate(ValueAnimator animation) {
                 float animatedValue = (float) animation.getAnimatedValue();
                 System.out.println("animatedValue:" + animatedValue);
-                setRotate((int) animatedValue);
+                setRotate(animatedValue);
             }
         });
 
@@ -263,8 +266,14 @@ public class TurntableView extends View {
     }
 
     private class TurntableGestureListener extends GestureDetector.SimpleOnGestureListener {
+
         @Override
         public boolean onDown(MotionEvent e) {
+            if (mOnFlingAnimator != null) {
+                mOnFlingAnimator.cancel();
+            }
+            mStartX = e.getX();
+            mStartY = e.getY();
             return true;
         }
 
@@ -280,26 +289,72 @@ public class TurntableView extends View {
             float e2X = e2.getX();
             float e2Y = e2.getY();
 
-            System.out.println("e1X:" + e1X + ",e1Y:" + e1Y + ",e2X" + e2X + ",e2Y" + e2Y);
+            System.out.println("MotionEvent:onScroll:e1X:" + e1X + ",e1Y:" + e1Y + ",e2X" + e2X + ",e2Y" + e2Y);
             System.out.println("distanceX:" + distanceX + ",distanceY:" + distanceY);
-            float scrollTheta = vectorToScalarScroll(distanceX, distanceY, e2.getX() - mCenterX, e2.getY() -
-                    mCenterY);
-            calculationChangeAngle(e2, distanceX, distanceY);
-            int rotate = mCurrentAngle - (int) scrollTheta / 4;
 
+            calculationChangeAngle(e2, distanceX, distanceY);
             return true;
         }
 
         @Override
-        public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
+        public boolean onFling(MotionEvent e1, final MotionEvent e2, final float velocityX, final float velocityY) {
+            float e1X = e1.getX();
+            float e1Y = e1.getY();
+            float e2X = e2.getX();
+            float e2Y = e2.getY();
+
+            System.out.println("onFling:velocityX:" + velocityX + ",velocityY" + velocityY);
+            System.out.println("MotionEvent:onFling:e1X:" + e1X + ",e1Y:" + e1Y + ",e2X" + e2X + ",e2Y" + e2Y);
+
+            float dx = velocityX * (float) 0.005;
+            float dy = velocityY * (float) 0.005;
+            float xStart = mStartX - mCenterX;
+            float yStart = mCenterY - mStartY;
+            double distancestart = Math.sqrt(xStart * xStart + yStart * yStart);
+            //计算移动点到圆心的距离
+            float xMove = e2X - mCenterX;
+            float yMove = mCenterY - e2Y;
+            double distanceMove = Math.sqrt(xMove * xMove + yMove * yMove);
+            double distanceMoveDz = Math.sqrt(dx * dx + dy * dy);
+
+            double cosValue = (distancestart * distancestart + distanceMove * distanceMove - distanceMoveDz * distanceMoveDz) / (2 * distancestart * distanceMove);
+            double acos = Math.acos(cosValue);
+            double changeAngleDz = Math.toDegrees(acos);
+            if ((e2Y < mCenterY && velocityX > 0) || (e2X > mCenterX && velocityY > 0)
+                    || (e2Y > mCenterY && velocityX < 0) || (e2X < mCenterX && velocityY < 0)) {
+                //这些情况下顺时针，上半圆，右移动；右半圆，下移动；下半圆，左移动；左半圆，上移动
+            } else {
+                changeAngleDz = changeAngleDz * -1;
+            }
+            System.out.println("onFling:changeAngleDz:" + changeAngleDz);
+
+            mOnFlingAnimator = ValueAnimator.ofFloat((float) changeAngleDz, 0);
+            mOnFlingAnimator.setDuration(1000);
+            mOnFlingAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+                @Override
+                public void onAnimationUpdate(ValueAnimator animation) {
+                    float animatedX = (float) animation.getAnimatedValue();
+                    mCurrentAngle = mCurrentAngle + animatedX;
+                    setRotate(mCurrentAngle);
+                }
+            });
+            mOnFlingAnimator.start();
             System.out.println("velocityX:" + velocityX + ",velocityY:" + velocityY);
             return true;
         }
     }
 
+    /**
+     * 计算移动的角度
+     *
+     * @param e2
+     * @param distanceX
+     * @param distanceY
+     */
     private void calculationChangeAngle(MotionEvent e2, float distanceX, float distanceY) {
-//        Math.sin(Math.toRadians(radian))
-
+        float xStart = mStartX - mCenterX;
+        float yStart = mCenterY - mStartY;
+        double distancestart = Math.sqrt(xStart * xStart + yStart * yStart);
         float e2X = e2.getX();
         float e2Y = e2.getY();
         //计算移动点到圆心的距离
@@ -307,24 +362,25 @@ public class TurntableView extends View {
         float yMove = mCenterY - e2Y;
         double distanceMove = Math.sqrt(xMove * xMove + yMove * yMove);
         double distanceMoveDz = Math.sqrt(distanceX * distanceX + distanceY * distanceY);
-        double acos = (distanceMove * distanceMove + distanceMove * distanceMove - distanceMoveDz * distanceMoveDz) / (2 * distanceMove * distanceMove);
+
+        double cosValue = (distancestart * distancestart + distanceMove * distanceMove - distanceMoveDz * distanceMoveDz) / (2 * distancestart * distanceMove);
+        double acos = Math.acos(cosValue);
         double changeAngleDz = Math.toDegrees(acos);
 
-        System.out.println("distanceMove:" + distanceMove + ",distanceMoveDz" + distanceMoveDz + ",acos" + acos + ",changeAngleDz:" + changeAngleDz);
-    }
+        System.out.println("xStart:" + xStart + ",yStart:" + yStart + ",xMove:" + xMove + ",yMove:" + yMove + ",distanceX:" + distanceX + ",distanceY:" + distanceY);
+        System.out.println("acos:" + acos + ",distancestart:" + distancestart + ",distanceMove:" + distanceMove + ",distanceMoveDz" + distanceMoveDz + ",acos" + acos + ",changeAngleDz:" + changeAngleDz);
 
-    //TODO 判断滑动的方向
-    private float vectorToScalarScroll(float dx, float dy, float x, float y) {
+        if ((e2Y < mCenterY && distanceX < 0) || (e2X > mCenterX && distanceY < 0)
+                || (e2Y > mCenterY && distanceX > 0) || (e2X < mCenterX && distanceY > 0)) {
+            //这些情况下下顺时针，上半圆，右移动；右半圆，下移动；下半圆，左移动；左半圆，上移动
+            mCurrentAngle = (float) (mCurrentAngle + changeAngleDz);
+        } else {
+            mCurrentAngle = (float) (mCurrentAngle - changeAngleDz);
+        }
+        setRotate(mCurrentAngle);
 
-        float l = (float) Math.sqrt(dx * dx + dy * dy);
-
-        float crossX = -y;
-        float crossY = x;
-
-        float dot = (crossX * dx + crossY * dy);
-        float sign = Math.signum(dot);
-
-        return l * sign;
+        mStartX = e2X;
+        mStartY = e2Y;
     }
 
 }
