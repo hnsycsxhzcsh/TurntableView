@@ -19,8 +19,8 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        mTurntable = findViewById(R.id.turntable);
-        mBtStart = findViewById(R.id.bt_start);
+        mTurntable = (TurntableView) findViewById(R.id.turntable);
+        mBtStart = (Button) findViewById(R.id.bt_start);
 
         mBtStart.setOnClickListener(new View.OnClickListener() {
             @Override
