@@ -1,9 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!--<color name="red">#ff8584</color>-->
-    <!--<color name="green">#fe6869</color>-->
-
     <color name="red">#99ff8584</color>
+    <color name="red2">#ff8584</color>
     <color name="green">#6636B34A</color>
 
 </resources>

@@ -35,13 +35,20 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
         android:orientation="horizontal">
 
         <Button
-            android:id="@+id/bt_start"
+            android:id="@+id/bt_changecolor"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="运行" />
+            android:text="修改转盘颜色" />
+
+        <Button
+            android:id="@+id/bt_changedata"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="修改转盘数据" />
 
     </LinearLayout>
 

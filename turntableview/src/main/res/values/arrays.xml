@@ -23,4 +23,9 @@
         <item>head8</item>
     </string-array>
 
+    <integer-array name="colors">
+        <item>@color/red</item>
+        <item>@color/green</item>
+    </integer-array>
+
 </resources>

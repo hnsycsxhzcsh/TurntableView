@@ -37,11 +37,7 @@ public class TurntableView extends View {
     /**
      * 转盘中的文字说明
      */
-    private String[] mNamesStrs;
-    /**
-     * 转盘中图片本地路径
-     */
-    private String[] mIconsStrs;
+    private ArrayList<String> mNamesStrs = new ArrayList<>();
     /**
      * 控件宽
      */
@@ -71,13 +67,9 @@ public class TurntableView extends View {
      */
     private Paint mPaint = new Paint();
     /**
-     * 颜色red
+     * item颜色
      */
-    private int mColorRed;
-    /**
-     * 颜色green
-     */
-    private int mColorGreen;
+    private ArrayList<Integer> mColors = new ArrayList<>();
     /**
      * 屏幕高
      */
@@ -158,21 +150,27 @@ public class TurntableView extends View {
         mScreenHeight = getResources().getDisplayMetrics().heightPixels;
         mScreenWidth = getResources().getDisplayMetrics().widthPixels;
 
-        mColorRed = context.getResources().getColor(R.color.red);
-        mColorGreen = context.getResources().getColor(R.color.green);
-
         TypedArray array = context.obtainStyledAttributes(attrs, R.styleable.TurntableView);
         if (array != null) {
             mPanNum = array.getInteger(R.styleable.TurntableView_pannum, 8);
+            int colorsId = array.getResourceId(R.styleable.TurntableView_colors, R.array.colors);
             int namesArray = array.getResourceId(R.styleable.TurntableView_names, R.array.names);
             int iconsArray = array.getResourceId(R.styleable.TurntableView_icons, R.array.icons);
             mPercentage = array.getFloat(R.styleable.TurntableView_percentage, (float) 0.75);
-            mNamesStrs = context.getResources().getStringArray(namesArray);
-            mIconsStrs = context.getResources().getStringArray(iconsArray);
+            int[] colors = context.getResources().getIntArray(colorsId);
+            String[] namesStrs = context.getResources().getStringArray(namesArray);
+            String[] iconsStrs = context.getResources().getStringArray(iconsArray);
 
+            for (int i = 0; i < colors.length; i++) {
+                mColors.add(colors[i]);
+            }
+
+            for (int i = 0; i < namesStrs.length; i++) {
+                mNamesStrs.add(namesStrs[i]);
+            }
             List<Integer> iconLists = new ArrayList<>();
-            for (int i = 0; i < mIconsStrs.length; i++) {
-                iconLists.add(context.getResources().getIdentifier(mIconsStrs[i], "mipmap", context.getPackageName()));
+            for (int i = 0; i < iconsStrs.length; i++) {
+                iconLists.add(context.getResources().getIdentifier(iconsStrs[i], "mipmap", context.getPackageName()));
             }
             for (int i = 0; i < iconLists.size(); i++) {
                 Bitmap bitmap = BitmapFactory.decodeResource(context.getResources(), iconLists.get(i));
@@ -229,13 +227,9 @@ public class TurntableView extends View {
 
         float angle = mCurrentAngle;
         for (int i = 0; i < mPanNum; i++) {
-            if (i % 2 == 0) {
-                mPaint.setColor(mColorRed);
-                canvas.drawArc(rectF, angle, mOffsetAngle, true, mPaint);
-            } else {
-                mPaint.setColor(mColorGreen);
-                canvas.drawArc(rectF, angle, mOffsetAngle, true, mPaint);
-            }
+            int yushu = i % mColors.size();
+            mPaint.setColor(mColors.get(yushu));
+            canvas.drawArc(rectF, angle, mOffsetAngle, true, mPaint);
             angle = angle + mOffsetAngle;
         }
     }
@@ -278,11 +272,11 @@ public class TurntableView extends View {
         float textHeight = fm.bottom - fm.top;
 
         float startAngle = mCurrentAngle;
-        for (int i = 0; i < mNamesStrs.length; i++) {
+        for (int i = 0; i < mNamesStrs.size(); i++) {
             //使文本根据，每个item的圆弧路径绘制
             Path path = new Path();
             path.addArc(rectF, startAngle, mOffsetAngle);
-            canvas.drawTextOnPath(mNamesStrs[i], path, 0, textHeight + 10, mPaint);
+            canvas.drawTextOnPath(mNamesStrs.get(i), path, 0, textHeight + 10, mPaint);
             startAngle = startAngle + mOffsetAngle;
         }
     }
@@ -399,6 +393,36 @@ public class TurntableView extends View {
     @Override
     public boolean onTouchEvent(MotionEvent event) {
         return mDetector.onTouchEvent(event);
+    }
+
+    /**
+     * 设置转盘背景item的颜色
+     *
+     * @param colors
+     */
+    public void setBackColor(ArrayList<Integer> colors) {
+        mColors.clear();
+        mColors.addAll(colors);
+        invalidate();
+    }
+
+    /**
+     * 修改转盘基本数据
+     *
+     * @param num
+     * @param names
+     * @param bitmaps
+     */
+    public void setDatas(int num, ArrayList<String> names, ArrayList<Bitmap> bitmaps) {
+        if (names != null && bitmaps != null && num > 1 && names.size() == num && bitmaps.size() == num) {
+            mPanNum = num;
+            mOffsetAngle = (float) 360 / (float) mPanNum;
+            mNamesStrs.clear();
+            mNamesStrs.addAll(names);
+            mBitmaps.clear();
+            mBitmaps.addAll(bitmaps);
+            invalidate();
+        }
     }
 
     private class TurntableGestureListener extends GestureDetector.SimpleOnGestureListener {
