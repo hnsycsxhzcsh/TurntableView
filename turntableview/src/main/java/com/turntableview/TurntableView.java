@@ -1,5 +1,7 @@
 package com.turntableview;
 
+import android.animation.Animator;
+import android.animation.AnimatorListenerAdapter;
 import android.animation.ValueAnimator;
 import android.content.Context;
 import android.content.res.TypedArray;
@@ -10,14 +12,13 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.RectF;
-import android.os.Build;
 import android.support.annotation.Nullable;
 import android.support.v4.view.GestureDetectorCompat;
 import android.util.AttributeSet;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.View;
-import android.view.animation.AccelerateDecelerateInterpolator;
+import android.view.animation.DecelerateInterpolator;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -29,28 +30,105 @@ import java.util.Random;
 
 public class TurntableView extends View {
 
+    /**
+     * 转盘中的项数
+     */
     private Integer mPanNum;
+    /**
+     * 转盘中的文字说明
+     */
     private String[] mNamesStrs;
+    /**
+     * 转盘中图片本地路径
+     */
     private String[] mIconsStrs;
+    /**
+     * 控件宽
+     */
     private int mWid;
+    /**
+     * 控件高
+     */
     private int mHei;
+    /**
+     * 圆心x坐标
+     */
     private int mCenterX;
+    /**
+     * 圆心y坐标
+     */
     private int mCenterY;
+    /**
+     * 圆中每个item部分占有的角度
+     */
     private float mOffsetAngle;
+    /**
+     * 圆半径
+     */
     private int mRadius;
+    /**
+     * 画笔
+     */
     private Paint mPaint = new Paint();
+    /**
+     * 颜色red
+     */
     private int mColorRed;
+    /**
+     * 颜色green
+     */
     private int mColorGreen;
+    /**
+     * 屏幕高
+     */
     private int mScreenHeight;
+    /**
+     * 屏幕宽
+     */
     private int mScreenWidth;
+    /**
+     * 控件宽占屏幕宽的比例
+     */
     private float mPercentage;
+    /**
+     * 圆中图像bitmap数组
+     */
     private List<Bitmap> mBitmaps = new ArrayList<>();
+    /**
+     * 手势探测器
+     */
     private GestureDetectorCompat mDetector;
+    /**
+     * 当前初始角度
+     */
     private float mCurrentAngle = 0;
+    /**
+     * 持续时间
+     */
     private long mDuration = 2000;
+    /**
+     * 手势识别，手指开始x坐标
+     */
     private float mStartX;
+    /**
+     * 手势识别，手指开始y坐标
+     */
     private float mStartY;
+    /**
+     * onFling中的属性动画对象
+     */
     private ValueAnimator mOnFlingAnimator;
+    /**
+     * 转盘转动方向，true顺时针，false逆时针
+     */
+    private boolean isClockwise = true;
+    private String TAG = "TurntableView";
+    //转盘停止后停在某个item的某个比例的位置
+    private float mRandomPositionPro = (float) 0.2;
+    /**
+     * 是否正在抽奖
+     */
+    private boolean isDrawingLottery = false;
 
     public TurntableView(Context context) {
         this(context, null);
@@ -65,8 +143,16 @@ public class TurntableView extends View {
         initView(context, attrs);
     }
 
+    /**
+     * 初始化view
+     *
+     * @param context
+     * @param attrs
+     */
     private void initView(Context context, AttributeSet attrs) {
+        //手势识别对象
         mDetector = new GestureDetectorCompat(context, new TurntableGestureListener());
+        //抗锯齿
         mPaint.setAntiAlias(true);
 
         mScreenHeight = getResources().getDisplayMetrics().heightPixels;
@@ -97,23 +183,25 @@ public class TurntableView extends View {
     }
 
     @Override
+    protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+        super.onMeasure(widthMeasureSpec, heightMeasureSpec);
+        //控制view的宽为屏幕宽的mPercentage
+        int viewWid = (int) ((float) mScreenWidth * mPercentage);
+        setMeasuredDimension(viewWid, viewWid);
+    }
+
+    @Override
     protected void onSizeChanged(int w, int h, int oldw, int oldh) {
         super.onSizeChanged(w, h, oldw, oldh);
         mWid = w;
         mHei = h;
 
+        //让转盘的宽为view的宽，半径为view的宽的一半
         mCenterX = mWid / 2;
         mCenterY = mCenterX;
         mRadius = mWid / 2;
 
         mOffsetAngle = (float) 360 / (float) mPanNum;
-    }
-
-    @Override
-    protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-        super.onMeasure(widthMeasureSpec, heightMeasureSpec);
-        int viewWid = (int) ((float) mScreenWidth * mPercentage);
-        setMeasuredDimension(viewWid, viewWid);
     }
 
     @Override
@@ -130,41 +218,13 @@ public class TurntableView extends View {
         drawText(canvas);
     }
 
-    private void drawText(Canvas canvas) {
-        mPaint.setColor(Color.WHITE);
-        mPaint.setTextAlign(Paint.Align.CENTER);
-        mPaint.setTextSize(30);
-        RectF rectF = new RectF(0, 0, mWid, mHei);
-
-        Paint.FontMetrics fm = mPaint.getFontMetrics();
-        float textHeight = fm.bottom - fm.top;
-
-        float startAngle = mCurrentAngle;
-        for (int i = 0; i < mNamesStrs.length; i++) {
-            Path path = new Path();
-            path.addArc(rectF, startAngle, mOffsetAngle);
-            canvas.drawTextOnPath(mNamesStrs[i], path, 0, textHeight + 10, mPaint);
-            startAngle = startAngle + mOffsetAngle;
-        }
-    }
-
-    private void drawImage(Canvas canvas) {
-        float radian = mCurrentAngle + mOffsetAngle / (float) 2;
-        float imageOffset = (float) mRadius / (float) 7;
-        for (int i = 0; i < mBitmaps.size(); i++) {
-//        Math.toRadians  是为了提高计算精度
-            float x = (float) (mCenterX + (float) mRadius * (float) 0.6 * Math.cos(Math.toRadians(radian)));
-            float y = (float) (mCenterY + (float) mRadius * (float) 0.6 * Math.sin(Math.toRadians(radian)));
-
-            RectF rectF = new RectF(x - imageOffset, y - imageOffset, x + imageOffset, y + imageOffset);
-            canvas.drawBitmap(mBitmaps.get(i), null, rectF, mPaint);
-            radian = radian + mOffsetAngle;
-        }
-    }
-
+    /**
+     * 画圆的整体背景
+     *
+     * @param canvas
+     */
     private void drawBackground(Canvas canvas) {
         mPaint.setStyle(Paint.Style.FILL);
-
         RectF rectF = new RectF(0, 0, mWid, mHei);
 
         float angle = mCurrentAngle;
@@ -180,54 +240,116 @@ public class TurntableView extends View {
         }
     }
 
-    private void setRotate(float rotation) {
-        mCurrentAngle = (rotation % 360 + 360) % 360;
-//        ViewCompat.postInvalidateOnAnimation(this);
-        invalidate();
-//        postInvalidate();
-        System.out.println("mCurrentAngle:" + mCurrentAngle);
+    /**
+     * 画图像
+     *
+     * @param canvas
+     */
+    private void drawImage(Canvas canvas) {
+        //绘制图片开始的角度位置
+        float radian = mCurrentAngle + mOffsetAngle / (float) 2;
+        //使图像的宽度的一半为半径的1/7
+        float imageOffset = (float) mRadius / (float) 7;
+        for (int i = 0; i < mBitmaps.size(); i++) {
+            //计算图片中心位置的坐标
+            //Math.toRadians  是为了提高计算精度
+            float x = (float) (mCenterX + (float) mRadius * (float) 0.6 * Math.cos(Math.toRadians(radian)));
+            float y = (float) (mCenterY + (float) mRadius * (float) 0.6 * Math.sin(Math.toRadians(radian)));
+
+            RectF rectF = new RectF(x - imageOffset, y - imageOffset, x + imageOffset, y + imageOffset);
+            canvas.drawBitmap(mBitmaps.get(i), null, rectF, mPaint);
+            radian = radian + mOffsetAngle;
+        }
     }
 
     /**
-     * 滚动到指定位置
+     * 画文本
+     *
+     * @param canvas
+     */
+    private void drawText(Canvas canvas) {
+        mPaint.setColor(Color.WHITE);
+        mPaint.setTextAlign(Paint.Align.CENTER);
+        mPaint.setTextSize(30);
+        RectF rectF = new RectF(0, 0, mWid, mHei);
+
+        //计算text文本的高度
+        Paint.FontMetrics fm = mPaint.getFontMetrics();
+        float textHeight = fm.bottom - fm.top;
+
+        float startAngle = mCurrentAngle;
+        for (int i = 0; i < mNamesStrs.length; i++) {
+            //使文本根据，每个item的圆弧路径绘制
+            Path path = new Path();
+            path.addArc(rectF, startAngle, mOffsetAngle);
+            canvas.drawTextOnPath(mNamesStrs[i], path, 0, textHeight + 10, mPaint);
+            startAngle = startAngle + mOffsetAngle;
+        }
+    }
+
+    /**
+     * 让转盘根据rotation值重绘
+     *
+     * @param rotation
+     */
+    private void setRotate(float rotation) {
+        //控制mCurrentAngle在0到360之间
+        mCurrentAngle = (rotation % 360 + 360) % 360;
+        invalidate();
+//        postInvalidate();
+    }
+
+    /**
+     * 开始转动到指定位置
      *
      * @param position
      */
     public void startRotate(int position) {
+        if (isDrawingLottery) {
+            return;
+        }
         if (position >= 0 && position < mPanNum) {
             //指定位置
             setScrollToPosition(position);
         } else {
-            //随机
-            int random = getRandom(0, mPanNum);
+            //如果用户输入的数值，圆中没有对应位置的话，那么随机
+            int random = getRandom(mPanNum);
             setScrollToPosition(random);
         }
     }
 
     /**
-     * 指定到随机位置
+     * 开始随机转动到随机位置
      */
     public void startRotate() {
+        if (isDrawingLottery) {
+            return;
+        }
         //随机
-        int random = getRandom(0, mPanNum);
+        int random = getRandom(mPanNum);
         setScrollToPosition(random);
     }
 
     /**
-     * 获取min 到 max之间的随机值
+     * 返回0-num之间的数值
      *
-     * @param min
-     * @param max
      * @return
      */
-    public int getRandom(int min, int max) {
+    public int getRandom(int num) {
         Random random = new Random();
-        int s = random.nextInt(max) % (max - min + 1) + min;
+        int s = random.nextInt(num);
         return s;
     }
 
+    /**
+     * 滚动到position位置
+     *
+     * @param position
+     */
     private void setScrollToPosition(int position) {
-        float entAngle = 270 - mOffsetAngle * ((float) position + (float) 0.5);
+        mRandomPositionPro = getRandomPositionPro();
+        //计算转动到position位置停止后的角度值
+        float entAngle = 270 - mOffsetAngle * ((float) position + mRandomPositionPro);
         if (entAngle < mCurrentAngle) {
             entAngle = entAngle + 4 * 360;
         } else {
@@ -235,34 +357,58 @@ public class TurntableView extends View {
         }
         ValueAnimator animator = ValueAnimator.ofFloat(mCurrentAngle, entAngle);
         animator.setDuration(mDuration);
-        animator.setInterpolator(new AccelerateDecelerateInterpolator());
+        animator.setInterpolator(new DecelerateInterpolator());
         animator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
             @Override
             public void onAnimationUpdate(ValueAnimator animation) {
                 float animatedValue = (float) animation.getAnimatedValue();
-                System.out.println("animatedValue:" + animatedValue);
                 setRotate(animatedValue);
             }
         });
 
+        animator.addListener(new AnimatorListenerAdapter() {
+            @Override
+            public void onAnimationStart(Animator animation) {
+                super.onAnimationStart(animation);
+                isDrawingLottery = true;
+            }
+
+            @Override
+            public void onAnimationEnd(Animator animation) {
+                super.onAnimationEnd(animation);
+                isDrawingLottery = false;
+            }
+        });
         animator.start();
+    }
+
+    /**
+     * 转盘滚动终点随机停止的位置
+     *
+     * @return
+     */
+    public float getRandomPositionPro() {
+        float num = (float) Math.random();
+        if (num > 0 && num < 1) {
+            return num;
+        } else {
+            return (float) 0.5;
+        }
     }
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
-        boolean consume = mDetector.onTouchEvent(event);
-        if (consume) {
-//            getParent().getParent().requestDisallowInterceptTouchEvent(true);
-            return true;
-        } else {
-            return super.onTouchEvent(event);
-        }
+        return mDetector.onTouchEvent(event);
     }
 
     private class TurntableGestureListener extends GestureDetector.SimpleOnGestureListener {
 
         @Override
         public boolean onDown(MotionEvent e) {
+            //如果正在抽奖，则不可以手势滑动
+            if (isDrawingLottery) {
+                return false;
+            }
             if (mOnFlingAnimator != null) {
                 mOnFlingAnimator.cancel();
             }
@@ -272,50 +418,10 @@ public class TurntableView extends View {
         }
 
         @Override
-        public boolean onDoubleTap(MotionEvent e) {
-            System.out.println("MotionEvent:onDoubleTap");
-            return true;
-        }
-
-        @Override
-        public boolean onDoubleTapEvent(MotionEvent e) {
-            System.out.println("MotionEvent:onDoubleTapEvent");
-            return true;
-        }
-
-        @Override
-        public boolean onSingleTapUp(MotionEvent e) {
-            return super.onSingleTapUp(e);
-        }
-
-        @Override
-        public void onLongPress(MotionEvent e) {
-            super.onLongPress(e);
-        }
-
-        @Override
-        public void onShowPress(MotionEvent e) {
-            super.onShowPress(e);
-        }
-
-        @Override
-        public boolean onSingleTapConfirmed(MotionEvent e) {
-            return super.onSingleTapConfirmed(e);
-        }
-
-        @Override
-        public boolean onContextClick(MotionEvent e) {
-            return super.onContextClick(e);
-        }
-
-        @Override
         public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX, float distanceY) {
-            float e1X = e1.getX();
-            float e1Y = e1.getY();
+            LoggerUtil.i(TAG, "onScroll");
             float e2X = e2.getX();
             float e2Y = e2.getY();
-            System.out.println("onScroll:e1X:" + e1X + ",e1Y:" + e1Y + ",e2X:" + e2X + ",e2Y:" + e2Y);
-            System.out.println("distanceX:" + distanceX + ",distanceY:" + distanceY);
 
             float xStart = mStartX - mCenterX;
             float yStart = mCenterY - mStartY;
@@ -327,17 +433,25 @@ public class TurntableView extends View {
             double distanceMoveDz = Math.sqrt(distanceX * distanceX + distanceY * distanceY);
 
             double cosValue = (distancestart * distancestart + distanceMove * distanceMove - distanceMoveDz * distanceMoveDz) / (2 * distancestart * distanceMove);
+            //多指触控的时候会造成cosValue 大于1，这里控制一下
+            if (cosValue > 1) {
+                LoggerUtil.i(TAG + "大于1", cosValue);
+                cosValue = 1;
+            } else if (cosValue < -1) {
+                LoggerUtil.i(TAG + "小于1", cosValue);
+                cosValue = -1;
+            }
             double acos = Math.acos(cosValue);
             double changeAngleDz = Math.toDegrees(acos);
 
-            System.out.println("xStart:" + xStart + ",yStart:" + yStart + ",xMove:" + xMove + ",yMove:" + yMove + ",distanceX:" + distanceX + ",distanceY:" + distanceY);
-            System.out.println("acos:" + acos + ",distancestart:" + distancestart + ",distanceMove:" + distanceMove + ",distanceMoveDz" + distanceMoveDz + ",acos" + acos + ",changeAngleDz:" + changeAngleDz);
-
-            float value = (e1X - mCenterX) * (e2Y - mCenterY) - (e1Y - mCenterY) * (e2X - mCenterX);
+            //大于0 顺时针，小于0 逆时针
+            float value = (mStartX - mCenterX) * (e2Y - mCenterY) - (mStartY - mCenterY) * (e2X - mCenterX);
             if (value >= 0) {
                 mCurrentAngle = (float) (mCurrentAngle + changeAngleDz);
+                isClockwise = true;
             } else {
                 mCurrentAngle = (float) (mCurrentAngle - changeAngleDz);
+                isClockwise = false;
             }
             setRotate(mCurrentAngle);
 
@@ -348,13 +462,8 @@ public class TurntableView extends View {
 
         @Override
         public boolean onFling(MotionEvent e1, final MotionEvent e2, final float velocityX, final float velocityY) {
-            float e1X = e1.getX();
-            float e1Y = e1.getY();
             float e2X = e2.getX();
             float e2Y = e2.getY();
-
-            System.out.println("onFling:velocityX:" + velocityX + ",velocityY" + velocityY);
-            System.out.println("MotionEvent:onFling:e1X:" + e1X + ",e1Y:" + e1Y + ",e2X" + e2X + ",e2Y" + e2Y);
 
             float dx = velocityX * (float) 0.005;
             float dy = velocityY * (float) 0.005;
@@ -368,14 +477,19 @@ public class TurntableView extends View {
             double distanceMoveDz = Math.sqrt(dx * dx + dy * dy);
 
             double cosValue = (distancestart * distancestart + distanceMove * distanceMove - distanceMoveDz * distanceMoveDz) / (2 * distancestart * distanceMove);
+            //多指触控的时候会造成cosValue 大于1，这里控制一下
+            if (cosValue > 1) {
+                cosValue = 1;
+            } else if (cosValue < -1) {
+                cosValue = -1;
+            }
             double acos = Math.acos(cosValue);
             double changeAngleDz = Math.toDegrees(acos);
-            System.out.println("onFling:changeAngleDz:" + changeAngleDz);
 
-            //大于0 顺时针，小于0 逆时针 https://blog.csdn.net/maxchenfuhai/article/details/51700152
-            float value = (e1X - mCenterX) * (e2Y - mCenterY) - (e1Y - mCenterY) * (e2X - mCenterX);
-            if (value >= 0) {
+            if (isClockwise) {
+
             } else {
+                //逆时针
                 changeAngleDz = changeAngleDz * -1;
             }
 
@@ -385,13 +499,12 @@ public class TurntableView extends View {
                 @Override
                 public void onAnimationUpdate(ValueAnimator animation) {
                     float animatedX = (float) animation.getAnimatedValue();
-                    System.out.println("animatedX:" + animatedX);
                     mCurrentAngle = mCurrentAngle + animatedX;
                     setRotate(mCurrentAngle);
                 }
             });
+
             mOnFlingAnimator.start();
-            System.out.println("velocityX:" + velocityX + ",velocityY:" + velocityY);
             return true;
         }
     }
