@@ -121,6 +121,10 @@ public class TurntableView extends View {
      * 是否正在抽奖
      */
     private boolean isDrawingLottery = false;
+    /**
+     * 控件监听
+     */
+    private ITurntableListener listener;
 
     public TurntableView(Context context) {
         this(context, null);
@@ -298,7 +302,8 @@ public class TurntableView extends View {
      *
      * @param position
      */
-    public void startRotate(int position) {
+    public void startRotate(int position, ITurntableListener listener) {
+        this.listener = listener;
         if (isDrawingLottery) {
             return;
         }
@@ -315,7 +320,8 @@ public class TurntableView extends View {
     /**
      * 开始随机转动到随机位置
      */
-    public void startRotate() {
+    public void startRotate(ITurntableListener listener) {
+        this.listener = listener;
         if (isDrawingLottery) {
             return;
         }
@@ -340,7 +346,7 @@ public class TurntableView extends View {
      *
      * @param position
      */
-    private void setScrollToPosition(int position) {
+    private void setScrollToPosition(final int position) {
         mRandomPositionPro = getRandomPositionPro();
         //计算转动到position位置停止后的角度值
         float entAngle = 270 - mOffsetAngle * ((float) position + mRandomPositionPro);
@@ -365,12 +371,18 @@ public class TurntableView extends View {
             public void onAnimationStart(Animator animation) {
                 super.onAnimationStart(animation);
                 isDrawingLottery = true;
+                if (listener != null) {
+                    listener.onStart();
+                }
             }
 
             @Override
             public void onAnimationEnd(Animator animation) {
                 super.onAnimationEnd(animation);
                 isDrawingLottery = false;
+                if (listener != null) {
+                    listener.onEnd(position, mNamesStrs.get(position));
+                }
             }
         });
         animator.start();
@@ -401,6 +413,10 @@ public class TurntableView extends View {
      * @param colors
      */
     public void setBackColor(ArrayList<Integer> colors) {
+        //转盘转动时候不能修改值
+        if (isDrawingLottery) {
+            return;
+        }
         mColors.clear();
         mColors.addAll(colors);
         invalidate();
@@ -414,6 +430,10 @@ public class TurntableView extends View {
      * @param bitmaps
      */
     public void setDatas(int num, ArrayList<String> names, ArrayList<Bitmap> bitmaps) {
+        //转盘转动时候不能修改值
+        if (isDrawingLottery) {
+            return;
+        }
         if (names != null && bitmaps != null && num > 1 && names.size() == num && bitmaps.size() == num) {
             mPanNum = num;
             mOffsetAngle = (float) 360 / (float) mPanNum;

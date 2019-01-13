@@ -8,7 +8,10 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.TextView;
+import android.widget.Toast;
 
+import com.turntableview.ITurntableListener;
 import com.turntableview.LoggerUtil;
 import com.turntableview.TurntableView;
 
@@ -21,6 +24,7 @@ public class MainActivity extends AppCompatActivity {
     private ImageView mIvGo;
     private Button mBtChangeColor;
     private Button mBtChangeData;
+    private TextView mTvResult;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -31,6 +35,7 @@ public class MainActivity extends AppCompatActivity {
         mIvGo = (ImageView) findViewById(R.id.iv_node);
         mBtChangeColor = (Button) findViewById(R.id.bt_changecolor);
         mBtChangeData = (Button) findViewById(R.id.bt_changedata);
+        mTvResult = (TextView) findViewById(R.id.tv_result);
 
         mBtChangeColor.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -52,7 +57,17 @@ public class MainActivity extends AppCompatActivity {
         mIvGo.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                mTurntable.startRotate();
+                mTurntable.startRotate(new ITurntableListener() {
+                    @Override
+                    public void onStart() {
+                        Toast.makeText(MainActivity.this, "开始抽奖", Toast.LENGTH_SHORT).show();
+                    }
+
+                    @Override
+                    public void onEnd(int position, String name) {
+                        mTvResult.setText("抽奖结束抽中第" + (position + 1) + "位置的奖品:" + name);
+                    }
+                });
             }
         });
 
@@ -71,7 +86,7 @@ public class MainActivity extends AppCompatActivity {
         ArrayList<String> names = new ArrayList<>();
         ArrayList<Bitmap> bitmaps = new ArrayList<>();
         for (int i = 0; i < num; i++) {
-            names.add("第" + i);
+            names.add("第" + (i + 1));
             bitmaps.add(BitmapFactory.decodeResource(getResources(), R.mipmap.ic_launcher));
         }
         mTurntable.setDatas(num, names, bitmaps);
