@@ -1,11 +1,11 @@
 # TurntableView
 Android自定义控件TurntableView，抽奖转盘
 
-<a href="https://github.com/hnsycsxhzcsh/TurntableView/blob/master/myres/rulerview.apk">Download Apk</a>
+<a href="https://github.com/hnsycsxhzcsh/TurntableView/blob/master/myres/turntableview.apk">Download Apk</a>
 
 效果图
 
-<img src="https://github.com/hnsycsxhzcsh/TurntableView/blob/master/myres/rulerview.gif" width="300" height="612">
+<img src="https://github.com/hnsycsxhzcsh/TurntableView/blob/master/myres/turntableview.gif" width="300" height="612">
 
 步骤1.将JitPack存储库添加到构建文件中
 
