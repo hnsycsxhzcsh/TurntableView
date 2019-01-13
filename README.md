@@ -73,6 +73,8 @@ setBackColor(ArrayList<Integer> colors);
 修改转盘基本数据
 
 setDatas(int num, ArrayList<String> names, ArrayList<Bitmap> bitmaps);
+	
+我的博客地址：https://blog.csdn.net/m0_38074457/article/details/86433483
 
 如果有帮助到大家希望点下右上角Star，谢谢！
 
