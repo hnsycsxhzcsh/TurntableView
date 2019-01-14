@@ -50,6 +50,12 @@
             android:layout_height="wrap_content"
             android:text="修改转盘数据" />
 
+        <Button
+            android:id="@+id/bt_point_to"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="转动到指定位置" />
+
     </LinearLayout>
 
     <TextView

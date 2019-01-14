@@ -115,7 +115,9 @@ public class TurntableView extends View {
      */
     private boolean isClockwise = true;
     private String TAG = "TurntableView";
-    //转盘停止后停在某个item的某个比例的位置
+    /**
+     * 转盘停止后停在某个item的某个比例的位置
+     */
     private float mRandomPositionPro = (float) 0.2;
     /**
      * 是否正在抽奖
