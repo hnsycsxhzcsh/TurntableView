@@ -78,5 +78,5 @@ setDatas(int num, ArrayList<String> names, ArrayList<Bitmap> bitmaps);</br>
 我的博客地址：https://blog.csdn.net/m0_38074457/article/details/86433483
 
 If my control helps you, please help click on the top right corner, thank you!</br>
-如果有帮助到大家希望点下右上角Star，谢谢！
+### 如果有帮助到大家希望点下右上角Star，谢谢！
 
