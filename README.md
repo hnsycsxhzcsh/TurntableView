@@ -6,7 +6,7 @@ Android自定义控件TurntableView，抽奖转盘</br>
 效果图</br>
 <img src="https://github.com/hnsycsxhzcsh/TurntableView/blob/master/myres/turntableview.gif" width="300" height="612">
 </br>
-Step 1. Add the JitPack repository to your build file</br>
+#### Step 1. Add the JitPack repository to your build file</br>
 步骤1.将JitPack存储库添加到构建文件中</br>
 项目的根build.gradle中添加以下代码：</br>
 ```Java
@@ -17,14 +17,14 @@ Step 1. Add the JitPack repository to your build file</br>
 		}
 	}
 ```
-Step 2. Add the dependency</br>
+#### Step 2. Add the dependency</br>
 步骤2.build.gradle添加依赖项
 ```Java
 	dependencies {
 	        implementation 'com.github.hnsycsxhzcsh:TurntableView:v1.1'
 	}
 ```
-Step 3. Reference control in layout(The control needs to be placed in a parent layout, with a picture button in the parent layout.)</br>
+#### Step 3. Reference control in layout(The control needs to be placed in a parent layout, with a picture button in the parent layout.)</br>
 步骤3. 布局中引用控件（控件需要放在一个父布局中，父布局中放一个图片按钮）
 ```Java
     <RelativeLayout
@@ -46,7 +46,7 @@ Step 3. Reference control in layout(The control needs to be placed in a parent l
 
         </RelativeLayout>
 ```
-Step 4. Add listener to the activity</br>
+#### Step 4. Add listener to the activity</br>
 步骤4. activity中添加监听
 ```Java
      mIvGo.setOnClickListener(new View.OnClickListener() {
