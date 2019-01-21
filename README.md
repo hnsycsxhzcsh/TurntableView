@@ -1,5 +1,6 @@
 # TurntableView
-Android custom control TurntableView, lottery turntable Android自定义控件TurntableView，抽奖转盘
+Android custom control TurntableView, lottery turntable</br>
+Android自定义控件TurntableView，抽奖转盘
 
 <a href="https://github.com/hnsycsxhzcsh/TurntableView/blob/master/myres/turntableview.apk">Download Apk</a>
 
