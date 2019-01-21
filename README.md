@@ -66,7 +66,7 @@ Step 4. Add listener to the activity</br>
             }
         });
         
-控件的其它方法：(Other methods of the control:)</br>
+控件的其它方法：(Other methods of the control:)</br></br>
 设置转盘背景item的颜色(Set the color of the turntable background item)</br>
 setBackColor(ArrayList<Integer> colors);</br>
 修改转盘基本数据(Modify the basic data of the turntable)</br>
