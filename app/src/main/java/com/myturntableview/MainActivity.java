@@ -10,11 +10,9 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
-
 import com.turntableview.ITurntableListener;
 import com.turntableview.LoggerUtil;
 import com.turntableview.TurntableView;
-
 import java.util.ArrayList;
 import java.util.Random;
 

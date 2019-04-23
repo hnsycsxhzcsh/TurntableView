@@ -1,7 +1,7 @@
 package com.turntableview;
 
 /**
- * Created by HARRY on 2019/1/13.
+ * Created by shaohuachen on 2019/1/13.
  */
 
 public interface ITurntableListener {

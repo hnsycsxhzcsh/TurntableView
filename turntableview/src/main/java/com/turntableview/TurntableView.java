@@ -25,7 +25,7 @@ import java.util.List;
 import java.util.Random;
 
 /**
- * Created by HARRY on 2019/1/7 0007.
+ * Created by shaohuachen on 2019/1/7 0007.
  */
 
 public class TurntableView extends View {
@@ -294,7 +294,6 @@ public class TurntableView extends View {
         //控制mCurrentAngle在0到360之间
         mCurrentAngle = (rotation % 360 + 360) % 360;
         invalidate();
-//        postInvalidate();
     }
 
     /**
@@ -407,44 +406,6 @@ public class TurntableView extends View {
         return mDetector.onTouchEvent(event);
     }
 
-    /**
-     * 设置转盘背景item的颜色
-     *
-     * @param colors
-     */
-    public void setBackColor(ArrayList<Integer> colors) {
-        //转盘转动时候不能修改值
-        if (isDrawingLottery) {
-            return;
-        }
-        mColors.clear();
-        mColors.addAll(colors);
-        invalidate();
-    }
-
-    /**
-     * 修改转盘基本数据
-     *
-     * @param num
-     * @param names
-     * @param bitmaps
-     */
-    public void setDatas(int num, ArrayList<String> names, ArrayList<Bitmap> bitmaps) {
-        //转盘转动时候不能修改值
-        if (isDrawingLottery) {
-            return;
-        }
-        if (names != null && bitmaps != null && num > 1 && names.size() == num && bitmaps.size() == num) {
-            mPanNum = num;
-            mOffsetAngle = (float) 360 / (float) mPanNum;
-            mNamesStrs.clear();
-            mNamesStrs.addAll(names);
-            mBitmaps.clear();
-            mBitmaps.addAll(bitmaps);
-            invalidate();
-        }
-    }
-
     private class TurntableGestureListener extends GestureDetector.SimpleOnGestureListener {
 
         @Override
@@ -553,5 +514,43 @@ public class TurntableView extends View {
         }
     }
 
+
+    /**
+     * 设置转盘背景item的颜色
+     *
+     * @param colors
+     */
+    public void setBackColor(ArrayList<Integer> colors) {
+        //转盘转动时候不能修改值
+        if (isDrawingLottery) {
+            return;
+        }
+        mColors.clear();
+        mColors.addAll(colors);
+        invalidate();
+    }
+
+    /**
+     * 修改转盘基本数据
+     *
+     * @param num
+     * @param names
+     * @param bitmaps
+     */
+    public void setDatas(int num, ArrayList<String> names, ArrayList<Bitmap> bitmaps) {
+        //转盘转动时候不能修改值
+        if (isDrawingLottery) {
+            return;
+        }
+        if (names != null && bitmaps != null && num > 1 && names.size() == num && bitmaps.size() == num) {
+            mPanNum = num;
+            mOffsetAngle = (float) 360 / (float) mPanNum;
+            mNamesStrs.clear();
+            mNamesStrs.addAll(names);
+            mBitmaps.clear();
+            mBitmaps.addAll(bitmaps);
+            invalidate();
+        }
+    }
 
 }
