@@ -23,6 +23,7 @@ public class MainActivity extends AppCompatActivity {
     private Button mBtChangeColor;
     private Button mBtChangeData;
     private TextView mTvResult;
+    private Button mBtPointTo;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -34,6 +35,24 @@ public class MainActivity extends AppCompatActivity {
         mBtChangeColor = (Button) findViewById(R.id.bt_changecolor);
         mBtChangeData = (Button) findViewById(R.id.bt_changedata);
         mTvResult = (TextView) findViewById(R.id.tv_result);
+        mBtPointTo = (Button) findViewById(R.id.bt_point_to);
+
+        mBtPointTo.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mTurntable.startRotate(7, new ITurntableListener() {
+                    @Override
+                    public void onStart() {
+                        Toast.makeText(MainActivity.this, "开始抽奖", Toast.LENGTH_SHORT).show();
+                    }
+
+                    @Override
+                    public void onEnd(int position, String name) {
+                        mTvResult.setText("抽奖结束抽中第" + (position + 1) + "位置的奖品:" + name);
+                    }
+                });
+            }
+        });
 
         mBtChangeColor.setOnClickListener(new View.OnClickListener() {
             @Override
