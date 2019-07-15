@@ -30,6 +30,8 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+
+
         mTurntable = (TurntableView) findViewById(R.id.turntable);
         mIvGo = (ImageView) findViewById(R.id.iv_node);
         mBtChangeColor = (Button) findViewById(R.id.bt_changecolor);
